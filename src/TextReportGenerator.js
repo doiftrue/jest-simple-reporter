@@ -1,23 +1,21 @@
 const { markdownTable } = require( 'markdown-table' )
 
+const Options = require( './Options' )
 
 module.exports = class TextReportGenerator {
 
 	#jestResults = {}
 	#readyResults = {}
-	#options = {}
 
 	/**
 	 * @param {object} jestResults
 	 * @param {object} readyResults
-	 * @param {object} options
 	 *
 	 * @returns {string}
 	 */
-	constructor( jestResults, readyResults, options ){
+	constructor( jestResults, readyResults ){
 		this.#jestResults = jestResults
 		this.#readyResults = readyResults
-		this.#options = options
 	}
 
 	getTextReport(){
@@ -36,10 +34,10 @@ module.exports = class TextReportGenerator {
 		};
 		const time = new Date().toLocaleString( 'en-GB', options )
 
-		text += `REPORT form ${time}\n\n`
+		text += `REPORT form  ${time}  (${this.#totalDuration()})\n\n`
 
 		text += markdownTable( [
-			[ this.#totalDuration(), '✓ Passed', '✗ Failed', '• Pending' ],
+			[ '', '✓ Passed', '✗ Failed', '• Pending' ],
 			[
 				`Suites (${jestRes.numTotalTestSuites})`,
 				jestRes.numPassedTestSuites,
@@ -65,10 +63,10 @@ module.exports = class TextReportGenerator {
 		const seconds = (new Date().getTime() - jestRes.startTime) / 1000
 
 		if( seconds > 60 ){
-			const minutes = Math.floor( seconds / 60 )
-			const remainingSeconds = seconds % 60
+			const min = seconds / 60
+			const sec = seconds % 60
 
-			return `${minutes} min ${remainingSeconds} sec`
+			return `${Math.floor(min)} min ${sec.toFixed(3)} sec`
 		}
 		else {
 			return `${seconds.toFixed( 3 )} sec`
@@ -88,11 +86,11 @@ module.exports = class TextReportGenerator {
 				text += `\n`
 			}
 
-			text += `${indent}${key}\n`
+			text += `${indent}${this.#formatKey( key )}\n`
 
 			if( Array.isArray( value ) ){
 				for( let obj of value ){
-					const duration = this.#options.showDuration ? ` (${obj.duration} ms)` : ''
+					const duration = Options.showDuration ? ` (${obj.duration} ms)` : ''
 					text += `${indent}${spaces}${obj.tit} ${duration}\n`
 
 					if( obj.err ){
@@ -114,6 +112,32 @@ module.exports = class TextReportGenerator {
 		}
 
 		return text
+	}
+
+	#formatKey( key ){
+		let items = [
+			{
+				regex: /^__FPATH__ /,
+				callback: Options.filterFilepathCb
+			},
+			{
+				regex: /^__GROUP__ /,
+				callback: Options.filterGroupCb
+			},
+			{
+				regex: /^__STATUS__ /,
+				callback: Options.filterStatusCb
+			},
+		]
+
+		for( let item of items ){
+			if( item.regex.test( key ) ){
+				let str = key.replace( item.regex, '' )
+				return item.callback ? item.callback( str ) : str
+			}
+		}
+
+		return key
 	}
 
 	#removeColorization( str ){

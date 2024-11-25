@@ -52,22 +52,24 @@ Or in `package.json` if your Jest config is there:
 Options
 -------
 
-| Option               | Value    | Description                                                               |
-|----------------------|----------|---------------------------------------------------------------------------|
-| `outputFile`         | `string` | Path to the output file. Default: './tests.txt'                           |
-| `truncateMsg`        | `number` | Number of characters to truncate long messages to. Default: 1000          |
-| `nameRelatify`       | `bool`   | Should test file path (suite name) be relative to root. Default: true     |
-| `nameRelatifyRegexp` | `string` | Additional regex applied after `nameRelatify` is implemented. Default: '' |
-| `showDuration`       | `bool`   | Add duration info next to testcase. Default: true                         |
+| Option               | Value      | Description                                                           |
+|----------------------|------------|-----------------------------------------------------------------------|
+| `outputFile`         | `string`   | Path to the output file. Default: './tests.txt'                       |
+| `truncateMsg`        | `number`   | Number of characters to truncate long messages to. Default: 1000      |
+| `nameRelatify`       | `bool`     | Should test file path (suite name) be relative to root. Default: true |
+| `showDuration`       | `bool`     | Add duration info next to testcase. Default: true                     |
+| `filterFilepathCb`   | `callable` | Allow to change display of test file path string. Default: null       |
+| `filterGroupCb`      | `callable` | Allow to change display of group name string. Default: null           |
+| `filterStatusCb`     | `callable` | Allow to change display of status string. Default: toUpperCase()      |
 
 
 
 Report Example
 --------------
 ```text
-REPORT form 25 Nov 2024, 02:57
+REPORT form  25 Nov 2024, 02:57  (0.333 sec)
 
-| 0.333 sec  | ✓ Passed | ✗ Failed | • Pending |
+|            | ✓ Passed | ✗ Failed | • Pending |
 | ---------- | -------- | -------- | --------- |
 | Suites (2) | 1        | 1        | 0         |
 | Tests (9)  | 8        | 1        | 1         |

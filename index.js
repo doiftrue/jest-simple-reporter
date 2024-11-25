@@ -2,43 +2,30 @@ const fs = require( 'fs' )
 const path = require( 'path' )
 
 const TextReportGenerator = require( './src/TextReportGenerator' )
+const Options = require( './src/Options' )
 
 module.exports = class jestTextReporter {
 
-	#options = {}
 	#results = {}
 
 	constructor( globalConfig, options = {} ){
-		this.#options = {
-			outputFile: './tests.txt',
-			truncateMsg: 1000,
-			nameRelatify: true,
-			nameRelatifyRegexp: '',
-			showDuration: true,
-			...options
-		}
+		new Options( options ) // init option
 	}
 
 	onRunComplete( contexts, results ){
-		this.#options.nameRelatify = !! ( this.#options.nameRelatify || this.#options.nameRelatifyRegexp )
+		Options.truncateMsg && this.#truncateLongErrorMessages( results )
+		Options.relativeFilepath && this.#makeTestFilePathRelative( results )
 
-		if( this.#options.truncateMsg ){
-			this.#truncateLongErrorMessages( results )
-		}
+		this.#collectTestsResults( results )
 
-		if( this.#options.nameRelatify ){
-			this.#makeTestFilePathRelative( results )
-		}
-
-		results.testResults.forEach( result => this.#collectTestsResults( result ) )
-
-		this.#saveToFile( new TextReportGenerator( results, this.#results, this.#options ).getTextReport() )
+		const reportGenerator = new TextReportGenerator( results, this.#results )
+		this.#saveToFile( reportGenerator.getTextReport() )
 
 		return results
 	}
 
 	#saveToFile( text ){
-		const filename = `${this.#options.outputFile}`
+		const filename = `${Options.outputFile}`
 		const dir = path.resolve( path.dirname( filename ) )
 
 		fs.existsSync( dir ) || fs.mkdirSync( dir )
@@ -53,8 +40,8 @@ module.exports = class jestTextReporter {
 		results.testResults.forEach( result => {
 			result.testResults.forEach( assert => {
 				assert.failureMessages = assert.failureMessages.map( msg => {
-					if( msg.length > this.#options.truncateMsg ){
-						msg = msg.slice( 0, this.#options.truncateMsg ) + '...'
+					if( msg.length > Options.truncateMsg ){
+						msg = msg.slice( 0, Options.truncateMsg ) + '...'
 					}
 					return msg
 				} )
@@ -68,36 +55,45 @@ module.exports = class jestTextReporter {
 
 			filePath = filePath.replace( `${path.resolve('.')}/`, '' )
 
-			if( this.#options.nameRelatifyRegexp ){
-				filePath = filePath.replace( new RegExp( this.#options.nameRelatifyRegexp ), '' )
-			}
-
 			result.testFilePath = filePath
 		} )
 	}
 
-	#collectTestsResults( result ){
-		const suiteRef = this.#results[ result.testFilePath ] = {}
+	#collectTestsResults( results ){
+		results.testResults.forEach( result => {
+			let suiteRef = this.#results[ this.#markFilePath(result.testFilePath) ] = {}
+			let testRef = null
 
-		result.testResults.forEach( assert => {
-			let baseRef = suiteRef
+			result.testResults.forEach( test => {
+				let testRef = suiteRef
 
-			for( const groupTitle of assert.ancestorTitles ){
-				if( groupTitle ){
-					baseRef[this.#butifyGroupTitle(groupTitle)] ??= {}
-					baseRef = baseRef[this.#butifyGroupTitle(groupTitle)]
+				for( const groupTitle of test.ancestorTitles ){
+					if( groupTitle ){
+						testRef = testRef[ this.#markGroupTitle(groupTitle) ] ??= {}
+					}
 				}
-			}
 
-			baseRef[ this.#butifyStatus( assert.status ) ] ??= []
-
-			baseRef[ this.#butifyStatus( assert.status ) ].push( this.#assertResult( assert ) )
+				testRef = testRef[ this.#markStatus( test.status ) ] ??= []
+				testRef.push( this.#prepareTestResult( test ) )
+			} )
 		} )
 	}
 
-	#assertResult( assert ){
+	#markFilePath( filePath ){
+		return `__FPATH__ ${filePath}`
+	}
+
+	#markGroupTitle( title ){
+		return `__GROUP__ ${title}`
+	}
+
+	#markStatus( status ){
+		return `__STATUS__ ${status}`
+	}
+
+	#prepareTestResult( test ){
 		/*
-		assert example = {
+		test = {
 		  ancestorTitles: [ 'Brand: bacardi' ],
 		  duration: 240,
 		  failureDetails: [],
@@ -112,27 +108,19 @@ module.exports = class jestTextReporter {
 		}
 		*/
 
-		switch( assert.status ){
+		switch( test.status ){
 			case 'passed':
-				return { tit: `✔ ${assert.title}`, err: '', ...assert }
+				return { tit: `✔ ${test.title}`, err: '', ...test }
 
 			case 'failed':
-				return { tit: `✘ ${assert.title}`, err: assert.failureMessages.join( `\n` ), ...assert }
+				return { tit: `✘ ${test.title}`, err: test.failureMessages.join( `\n` ), ...test }
 
 			case 'pending':
-				return { tit: `◑ ${assert.title}`, err: '', ...assert }
+				return { tit: `◑ ${test.title}`, err: '', ...test }
 
 			default:
-				return { ...assert }
+				return { ...test }
 		}
-	}
-
-	#butifyGroupTitle( title ){
-		return `[${title}]`
-	}
-
-	#butifyStatus( status ){
-		return status.toUpperCase()
 	}
 
 }
