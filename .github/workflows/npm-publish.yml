@@ -3,9 +3,7 @@ name: Publish Package to npmjs
 on:
   push:
     tags:
-      - 'v*.*.*'
-    branches:
-      - master
+      - '*'
 
 jobs:
   build:
@@ -21,7 +19,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '23.x'
-      - run: npm ci
+      - run: npm ci --omit=dev
       - run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

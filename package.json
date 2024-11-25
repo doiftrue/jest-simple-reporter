@@ -21,9 +21,6 @@
     "README.md",
     "LICENSE"
   ],
-  "peerDependencies": {
-    "jest": "*"
-  },
   "homepage": "https://github.com/doiftrue/jest-simple-reporter#readme",
   "license": "MIT",
   "repository": {
