@@ -1,13 +1,12 @@
 {
-  "name": "jest-text-reporter",
-  "description": "Simple Jest reporter in a text file",
-  "version": "0.0.1",
+  "version": "1.0.0",
+  "name": "@doiftrue/jest-simple-reporter",
+  "description": "Simple Jest reporter in a text file.",
+  "private": false,
   "author": "Timur Kamaev",
   "main": "index.js",
   "keywords": [ "jest", "jest-reporter", "reporter" ],
-  "scripts": {
-    "test": "jest"
-  },
+  "scripts": {},
   "dependencies": {
     "markdown-table": "^3.0.4"
   },
@@ -25,10 +24,10 @@
   "peerDependencies": {
     "jest": "*"
   },
-  "homepage": "https://github.com/doiftrue/jest-text-reporter",
+  "homepage": "https://github.com/doiftrue/jest-simple-reporter#readme",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/doiftrue/jest-text-reporter"
+    "url": "https://github.com/doiftrue/jest-simple-reporter"
   }
 }

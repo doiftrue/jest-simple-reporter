@@ -1,12 +1,12 @@
-Jest Text Reporter
+Jest Simple Reporter
 ==================
 Simple text reporter for Jest that creates a report in a TXT file.
 
 
 Installing
 ----------
-```
-npm install --save-dev jest-text-reporter
+```shell
+npm install  @doiftrue/jest-simple-reporter  --save-dev
 ```
 
 
@@ -21,11 +21,11 @@ Add the reporter in your `jest.config.js` like so:
 	//...
 	reporters: [
 		'default',
-		['<rootDir>/index.js', {
+		['@doiftrue/jest-simple-reporter', {
 			outputFile: 'tmp/report/tests-report.txt',
 			truncateMsg: 1000,
 		}],
-	],
+	]
 	//...
 }
 ```
@@ -38,7 +38,7 @@ Or in `package.json` if your Jest config is there:
     "reporters": [
       "default",
       [
-        "<rootDir>/node_modules/jest-text-reporter", {
+        "@doiftrue/jest-simple-reporter", {
           "outputFile": "tmp/report/tests-report.txt",
           "truncateMsg": 1000
         }
@@ -59,6 +59,7 @@ Options
 | `nameRelatify`       | `bool`   | Should test file path (suite name) be relative to root. Default: true     |
 | `nameRelatifyRegexp` | `string` | Additional regex applied after `nameRelatify` is implemented. Default: '' |
 | `showDuration`       | `bool`   | Add duration info next to testcase. Default: true                         |
+
 
 
 Report Example
