@@ -9,6 +9,7 @@ define node_run
 	  -e HISTFILE=/app/tmp/.bash_history \
 	  -e PROMPT_COMMAND="history -a; ${PROMPT_COMMAND:-}" \
       -e HISTCONTROL=ignoredups \
+      -e NODE_OPTIONS=--disable-warning=ExperimentalWarning \
 	  -v .:/app \
 	  node:23.1-slim \
 	  sh -c "cd /app ; $1"

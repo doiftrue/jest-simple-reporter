@@ -9,15 +9,14 @@ module.exports = class TextReportGenerator {
 
 	/**
 	 * @param {object} jestResults
-	 * @param {object} readyResults
-	 *
-	 * @returns {string}
+	 * @param {ResultsTransformer} ResultsTransformer
 	 */
-	constructor( jestResults, readyResults ){
+	constructor( jestResults, ResultsTransformer ){
 		this.#jestResults = jestResults
-		this.#readyResults = readyResults
+		this.#readyResults = ResultsTransformer.transform( jestResults )
 	}
 
+	/** @returns {string} */
 	getTextReport(){
 		const jestRes = this.#jestResults
 		const readyRes = this.#readyResults
@@ -73,6 +72,11 @@ module.exports = class TextReportGenerator {
 		}
 	}
 
+	/**
+	 * @param {object} data
+	 * @param {number} indentNum
+	 * @returns {string}
+	 */
 	#prettyPrint( data, indentNum = 0 ){
 		const spaces = '  '
 		let indent = spaces.repeat( indentNum )
@@ -114,6 +118,10 @@ module.exports = class TextReportGenerator {
 		return text
 	}
 
+	/**
+	 * @param {string} key
+	 * @returns {string}
+	 */
 	#formatKey( key ){
 		let items = [
 			{
@@ -132,8 +140,9 @@ module.exports = class TextReportGenerator {
 
 		for( let item of items ){
 			if( item.regex.test( key ) ){
-				let str = key.replace( item.regex, '' )
-				return item.callback ? item.callback( str ) : str
+				key = key.replace( item.regex, '' )
+
+				return item.callback ? item.callback( key ) : key
 			}
 		}
 
