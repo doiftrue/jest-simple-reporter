@@ -6,10 +6,12 @@ class Options {
 	showDuration = true
 
 	relativeFilepath = true
-	
+
 	filterFilepathCb = null // Eg: str => str.replace( 'foo/bar/', '' )
 	filterGroupCb = null // Eg: str => `[ ${str} ]`
 	filterStatusCb = str => str.toUpperCase()
+	filterAssertCb = null // Eg: assert => assert.status = 'OK'
+	filterErrorMsgCb = null // Eg: str => `Some prefix: ${str}`
 
 	static instance = null
 
@@ -22,7 +24,7 @@ class Options {
 }
 
 /**
- * This Proxy is used to make singleton from Options class and to make 
+ * This Proxy is used to make singleton from Options class and to make
  * it accessible from any module by simply importing this file.
  */
 module.exports = new Proxy( Options, {

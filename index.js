@@ -13,8 +13,7 @@ module.exports = class jestTextReporter {
 
 	onRunComplete( contexts, jestResults ){
 		// change original jestResults data
-		Options.truncateMsg      && this.#truncateLongErrorMessages( jestResults )
-		Options.relativeFilepath && this.#makeTestFilePathRelative( jestResults )
+		jestResults.testResults.forEach( result => this.#filterResult( result ) )
 
 		const textReport = new TextReportGenerator( jestResults, new ResultsTransformer() ).getTextReport()
 
@@ -31,31 +30,38 @@ module.exports = class jestTextReporter {
 		fs.writeFileSync( filename, text, 'utf-8' )
 	}
 
+	#filterResult( result ){
+		Options.relativeFilepath && this.#makeTestFilePathRelative( result )
+
+		result.testResults.forEach( assert => {
+			if( Options.filterAssertCb ){
+				Options.filterAssertCb( assert )
+			}
+
+			if( Options.filterErrorMsgCb ){
+				assert.failureMessages = assert.failureMessages.map( msg => Options.filterErrorMsgCb( msg ) )
+			}
+
+			if( Options.truncateMsg ){
+				assert.failureMessages = assert.failureMessages.map( msg => this.#truncateLongErrorMsg( msg ) )
+			}
+		} )
+	}
+
 	/**
 	 * Change original messages length to other reporters use truncated.
 	 * NOTE: this reporter should be first in the list of reporters in jest.config.js.
 	 */
-	#truncateLongErrorMessages( results ){
-		results.testResults.forEach( result => {
-			result.testResults.forEach( assert => {
-				assert.failureMessages = assert.failureMessages.map( msg => {
-					if( msg.length > Options.truncateMsg ){
-						msg = msg.slice( 0, Options.truncateMsg ) + '...'
-					}
-					return msg
-				} )
-			} )
-		} )
+	#truncateLongErrorMsg( msg ){
+		if( msg.length > Options.truncateMsg ){
+			msg = msg.slice( 0, Options.truncateMsg ) + '...'
+		}
+
+		return msg
 	}
 
-	#makeTestFilePathRelative( results ){
-		results.testResults.forEach( result => {
-			let filePath = result.testFilePath
-
-			filePath = filePath.replace( `${path.resolve('.')}/`, '' )
-
-			result.testFilePath = filePath
-		} )
+	#makeTestFilePathRelative( result ){
+		result.testFilePath = result.testFilePath.replace( `${path.resolve('.')}/`, '' )
 	}
 
 }
